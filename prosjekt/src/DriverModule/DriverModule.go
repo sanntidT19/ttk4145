@@ -1,4 +1,4 @@
-
+package DriverModule
 /*
 #cgo LDFLAGS: -lcomedi -lm
 #include "io.h"
