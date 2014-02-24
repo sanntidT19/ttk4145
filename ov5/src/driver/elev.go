@@ -1,5 +1,14 @@
 package driver
 
+const N_FLOORS := 4
+
+type elev_button_type_t int
+const (
+  BUTTON_CALL_UP elev_button_type_t = iota
+  BUTTON_CALL_DOWN elev_button_type_t
+  BUTTON_COMMAND elev_button_type_t
+)
+
 func elev_init() int {
   if !io_init() {
     //feil
@@ -55,5 +64,7 @@ func elev_get_floor_sensor_signal() int {
   }
 }
 
-func elev_get_button_signal(
+func elev_get_button_signal(button elev_button_type_t,floor int) {
+  assert
+}
   
