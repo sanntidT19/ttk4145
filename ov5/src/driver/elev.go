@@ -65,6 +65,33 @@ func elev_get_floor_sensor_signal() int {
 }
 
 func elev_get_button_signal(button elev_button_type_t,floor int) {
-  assert
+    assert(floor >= 0)
+    assert(floor < N_FLOORS)
+    assert(!(button == BUTTON_CALL_UP && floor == N_FLOORS-1))
+    assert(!(button == BUTTON_CALL_DOWN && floor == 0))
+    assert( button == BUTTON_CALL_UP ||
+            button == BUTTON_CALL_DOWN ||
+            button == BUTTON_COMMAND)
+            
+    if io_read_bit(button_channel_matrix[floor][button]) == 1 {
+        return 1
+    } else {
+        return 0
+    }
 }
-  
+int elev_get_stop_signal() {
+  return io_read_bit(STOP)
+}
+int elev_get_obstruction_signal() {
+  return io_read_bit(OBSTRUCTION)
+}
+void elev_set_floor_indicator(floor int) {}
+void elev_set_button_lamp(button elev_button_type_t, floor int, value int) {}
+void elev_set_stop_lamp(value int) {}
+void elev_set_door_open_lamp(int value) {}
+
+func assert(t bool) {
+  if !t {
+    log.Panic("assertion failed!")
+  }
+}
