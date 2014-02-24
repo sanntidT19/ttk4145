@@ -1,2 +1,2 @@
-Prosjekt 
+Prosjekt Intellivator
 ========
