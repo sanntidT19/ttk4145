@@ -8,7 +8,8 @@ import (
 )
 
 func main() {
-go InitNetworkModule(LocalIP, port, netIn, netOut)
-// NEI!!!
+NetworkModule :=InitNetwork()
+
+go NetworkModule.start()
 
 }
