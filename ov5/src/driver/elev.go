@@ -79,16 +79,29 @@ func elev_get_button_signal(button elev_button_type_t,floor int) {
         return 0
     }
 }
-int elev_get_stop_signal() {
+func elev_get_stop_signal() int {
   return io_read_bit(STOP)
 }
-int elev_get_obstruction_signal() {
+func elev_get_obstruction_signal() int {
   return io_read_bit(OBSTRUCTION)
 }
-void elev_set_floor_indicator(floor int) {}
-void elev_set_button_lamp(button elev_button_type_t, floor int, value int) {}
-void elev_set_stop_lamp(value int) {}
-void elev_set_door_open_lamp(int value) {}
+func elev_set_floor_indicator(floor int) {
+  assert(floor >= 0)
+  assert(floor < N_FLOORS)
+  
+  if floor & 0x02 {
+    io_set_bit(FLOOR_IND1)
+  } else {
+    io_clear_bit(FLOOR_IND1)
+  }
+  
+  if floor & 0x01 {
+    io_set_bit(FLOOR_IND2)
+  }
+}
+func elev_set_button_lamp(button elev_button_type_t, floor int, value int) {}
+func elev_set_stop_lamp(value int) {}
+func elev_set_door_open_lamp(int value) {}
 
 func assert(t bool) {
   if !t {
