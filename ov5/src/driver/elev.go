@@ -15,8 +15,12 @@ const (
 	BUTTON_CALL_DOWN elev_button_type_t = iota
 	BUTTON_COMMAND elev_button_type_t = iota
 )
-lamp_channel_matrix := NewMatrix(4,3)
-button_channel_matrix := NewMatrix(4,3)
+
+var lamp_channel_matrix Matrix
+var button_channel_matrix Matrix
+lamp_channel_matrix = NewMatrix(4,3)
+button_channel_matrix = NewMatrix(4,3)
+
 //TODO: lampematrise
 
 func elev_init() int {
@@ -24,7 +28,7 @@ func elev_init() int {
 		//feil
 		return 0
 	}
-	
+	initMatrices()
 	for i := 0; i < N_FLOORS; i++{
 		if ( i != 0){
 			elev_set_button_lamp(BUTTON_CALL_DOWN, i, 0)
@@ -80,7 +84,7 @@ func elev_get_button_signal(button elev_button_type_t,floor int) {
 	assert(!(button == BUTTON_CALL_DOWN && floor == 0))
 	assert( button == BUTTON_CALL_UP || button == BUTTON_CALL_DOWN || button == BUTTON_COMMAND)
 
-	if io_read_bit( int(C.button_channel_matrix[ C.int(floor) ][ C.int(button) ]) )  == 1 {
+	if io_read_bit( button_channel_matrix.Get(floor, int(button)))   == 1 {
 		return 1
 	} else {
 		return 0
