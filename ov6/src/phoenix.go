@@ -1,8 +1,6 @@
 package main
 
 import (
-	."communication"
-	."consoleIO"
 	."fmt"
 	"os/exec"
 	."strings"
@@ -125,3 +123,5 @@ func SpawnNewFriend() {
     print(string(out))
     
 }
+
+// yoloswag
