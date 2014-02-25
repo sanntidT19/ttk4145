@@ -36,7 +36,7 @@ func elev_init() int {
 }
 
 func elev_set_Speed(int speed, int lastSpeed) int { //returns last speed
-	if (speed > 0){
+	if speed > 0 {
 		io_clear_bit(MOTORDIR)
 	} else if (speed < 0){
 		io_set_bit(MOTORDIR)
@@ -66,19 +66,17 @@ func elev_get_floor_sensor_signal() int {
 }
 
 func elev_get_button_signal(button elev_button_type_t,floor int) {
-    assert(floor >= 0)
-    assert(floor < N_FLOORS)
-    assert(!(button == BUTTON_CALL_UP && floor == N_FLOORS-1))
-    assert(!(button == BUTTON_CALL_DOWN && floor == 0))
-    assert( button == BUTTON_CALL_UP ||
-            button == BUTTON_CALL_DOWN ||
-            button == BUTTON_COMMAND)
-            
-    if io_read_bit(button_channel_matrix[floor][button]) == 1 {
-        return 1
-    } else {
-        return 0
-    }
+	assert(floor >= 0)
+	assert(floor < N_FLOORS)
+	assert(!(button == BUTTON_CALL_UP && floor == N_FLOORS-1))
+	assert(!(button == BUTTON_CALL_DOWN && floor == 0))
+	assert( button == BUTTON_CALL_UP || button == BUTTON_CALL_DOWN || button == BUTTON_COMMAND)
+	
+	if io_read_bit(button_channel_matrix[floor][button]) == 1 {
+		return 1
+	} else {
+		return 0
+	}
 }
 
 func elev_get_stop_signal() int {
@@ -104,7 +102,15 @@ func elev_set_floor_indicator(floor int) {
 	}
 }
 
-func elev_set_button_lamp(button elev_button_type_t, floor int, value int) {}
+func elev_set_button_lamp(button elev_button_type_t, floor int, value int) {
+	assert(floor >= 0)
+	assert(floor < N_FLOORS)
+	assert(!(button == BUTTON_CALL_UP && floor == N_FLOORS-1))
+	assert(!(button == BUTTON_CALL_DOWN && floor == 0))
+	assert( button == BUTTON_CALL_UP || button == BUTTON_CALL_DOWN || button == BUTTON_COMMAND)
+	
+	
+}
 func elev_set_stop_lamp(value int) {
 	if value != 0 {
 		io_set_bit(LIGHT_STOP)
