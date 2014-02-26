@@ -20,8 +20,8 @@ var lamp_channel_matrix Matrix
 var button_channel_matrix Matrix
 lamp_channel_matrix = NewMatrix(4,3)
 button_channel_matrix = NewMatrix(4,3)
+initMatrices()
 
-//TODO: lampematrise
 
 func elev_init() int {
 	if io_init() == 0{
@@ -121,7 +121,11 @@ func elev_set_button_lamp(button elev_button_type_t, floor int, value int) {
 	assert(!(button == BUTTON_CALL_DOWN && floor == 0))
 	assert( button == BUTTON_CALL_UP || button == BUTTON_CALL_DOWN || button == BUTTON_COMMAND)
 	
-	
+	if io_read_bit( lamp_channel_matrix.Get(floor, int(button)))   == 1 {
+		return 1
+	} else {
+		return 0
+	}
 	
 }
 func elev_set_stop_lamp(value int) {
@@ -180,24 +184,3 @@ func initMatrices() {
 	button_channel_matrix.Set(3,1,FLOOR_DOWN4)
 	button_channel_matrix.Set(3,2,FLOOR_COMMAND4)
 }
-
-
-
-/*
-static const int lamp_channel_matrix[N_FLOORS][N_BUTTONS] = {
-    {LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
-    {LIGHT_UP2, LIGHT_DOWN2, LIGHT_COMMAND2},
-    {LIGHT_UP3, LIGHT_DOWN3, LIGHT_COMMAND3},
-    {LIGHT_UP4, LIGHT_DOWN4, LIGHT_COMMAND4},
-};
-  
-  
-
-static const int button_channel_matrix[N_FLOORS][N_BUTTONS] = {
-    {FLOOR_UP1, FLOOR_DOWN1, FLOOR_COMMAND1},
-    {FLOOR_UP2, FLOOR_DOWN2, FLOOR_COMMAND2},
-    {FLOOR_UP3, FLOOR_DOWN3, FLOOR_COMMAND3},
-    {FLOOR_UP4, FLOOR_DOWN4, FLOOR_COMMAND4},
-};
-
-*/
