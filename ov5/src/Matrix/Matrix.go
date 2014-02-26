@@ -5,25 +5,27 @@ import (
 )
 
 type Matrix struct {
-	size int
+	sizeX int
+	sizeY int
 	arr [][]int
 }
 
-func NewMatrix(n int) Matrix {
+func NewMatrix(X int, Y int) Matrix {
 	m := new(Matrix)
-	m.size = n
+	m.sizeX = X
+	m.sizeY = Y
 
-	m.arr = make([][]int,n)
+	m.arr = make([][]int,X)
 
-	for i:=0;i<n;i++ {
-		m.arr[i] = make([]int,n)
+	for i:=0;i<X;i++ {
+		m.arr[i] = make([]int,Y)
 	}
 	return *m
 }
 
 func (m Matrix) Print() {
-	for i:=0;i<m.size;i++ {
-		for j:=0;j<m.size;j++{
+	for i:=0;i<m.sizeX;i++ {
+		for j:=0;j<m.sizeY;j++{
 			fmt.Print(m.arr[i][j])
 			fmt.Print(" ")
 		}
