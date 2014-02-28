@@ -1,6 +1,7 @@
 package main
 
 import (
+	."consoleIO"
 	."fmt"
 	"os/exec"
 	."strings"
@@ -9,97 +10,67 @@ import (
 	"net"
 	
 )
-const ever bool = true
-var localIP string
+var localIP string = "129.241.187.157"
 
 func main(){
-	Println("I am new here")
-	//netIn := make(chan string)
-	//netOut := make(chan string)
 	consoleIn := make(chan string)
 	consoleOut := make(chan string)
-	//go InitCommunication(netIn, netOut)
-	localIP = GetLocalIP()
 	go InitConsoleIO(consoleIn,consoleOut)
-	
-	// BACKUP ============================
+
 	bossAlive := true 
-	downtime := 0
-	x := 0
+	bossCount := 0
+	startTime := 0
 	udpaddr, _ := net.ResolveUDPAddr("udp", ":20011")
 	conn, _ := net.ListenUDP("udp", udpaddr)
-	conn.SetReadDeadline(Now().Add(Second))
+	
+	
+	Println("I am backup")
 	
 	for (bossAlive){
+		conn.SetReadDeadline(Now().Add(Second*2))
 		
+		data := make([]byte, 16)
 		
-		data := []byte("n"+"\x00")
-		msg := string(data[0:])
+		n, _, err := conn.ReadFromUDP(data[0:])
 		
-		_, senderAddr, _ := conn.ReadFromUDP(data[0:])
-		
-		senderAddress := TrimRight(senderAddr.String(), "1234567890")
-		senderAddress = TrimRight(senderAddress, ":")
-		
-
-		if localIP != senderAddress{
-		 	msg = string(data[0:])
-		 	
-	 	}
-	 	consoleIn <- msg
-		// wait for boss to die
-		
-		
-		bossCount := computeMessage(msg)
-		
-		if (bossCount == -1) {
-			downtime++
-		} else {
-			
-			downtime = 0
-			if (bossCount == -1) {
-				consoleIn <- "# Error:backup: computeMessage returned -1"
-			} else { x = bossCount}
-			
-		}
-		
-		if (downtime >= 5) {
+		if err != nil {
 			bossAlive = false
+		} else {
+			bossCount = computeMessage(string(data[0:n]))
+			Println("Someone else is counting:", bossCount)
 		}
-		Sleep(Second)
 	}
 	conn.Close()
-	// BOSS ==============================
+	
+	
+	Println("I am master")
 	SpawnNewFriend()
-	UDPconn, err := net.Dial("udp", "localhost:20011")
+	startTime = bossCount
+	
+	addr, _ := net.ResolveUDPAddr("udp4", "129.241.187.255:20011")
+	UDPconn, err := net.DialUDP("udp4", nil, addr)
 	if err != nil{
-			Println("# ERROR:conn: ",err)
-		}
+			Println("# ERROR:conn: ",err.Error())
+	}
 	
-	UDPconn.SetWriteDeadline(Now().Add(Second))
 	
-	for (ever) {
-		// shout angrily "I AM ALIVE, AND I AM THE BOSS!"
-		//netIn <- "IMDABOS"		
-		
-		msg := "Bosscount:" + Itoa(x)
-		data := []byte(msg+"\x00")
-		Println(string(data))
-		_, err := UDPconn.Write(data)
-	
+	for {		
+		msg := "Bosscount:" + Itoa(bossCount)
+
+		_, err := UDPconn.Write([]byte(msg))
+		Println("I am counting:", bossCount)
 		if err != nil {
-			Println("# ERROR:Broadcast:", err)
+			Println("# ERROR:Broadcast:", err.Error())
 		}		
 		
-		// occasionally fail and/or spawn "friends"
-		
-		if (x == 13) {
+		if (bossCount == 13 + startTime) {
 			break
 		}
-		x++
+		bossCount++
 		Sleep(Second)
 	}
-	conn.Close()
+	UDPconn.Close()
+	Println("I am done")
 }
 
 func computeMessage(msg string) int {
@@ -123,5 +94,3 @@ func SpawnNewFriend() {
     print(string(out))
     
 }
-
-// yoloswag
