@@ -1,4 +1,4 @@
-package main
+package Matrix
 
 import (
 	"fmt"
@@ -35,4 +35,8 @@ func (m Matrix) Print() {
 
 func (m Matrix) Set(row int, col int, val int) {
 	m.arr[row][col] = val
+}
+
+func (m Matrix) Get(row int, col int) int {
+	return m.arr[row][col]
 }
