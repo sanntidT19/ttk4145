@@ -1,3 +1,0 @@
-package DriverModule
-
-import "C"
