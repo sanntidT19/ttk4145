@@ -1,15 +1,16 @@
 package main
 
 import (
-."ControlModule"
-."DriverModule"
-."IOModule"
-."NetworkModule"
+    ."ControlModule"
+    
+    //."IOModule"
+    //."NetworkModule"
 )
 
 func main() {
-NetworkModule :=InitNetwork()
-
-go NetworkModule.start()
-
+    go ControlModule()
+    i := make(chan int,1)
+    
+    <-i
+    
 }

@@ -4,6 +4,8 @@ import (
 	"math"
 	"C"
 	"log"
+	."time"
+	."fmt"
 )
 
 const N_FLOORS = 4
@@ -57,7 +59,7 @@ func ElevSetSpeed(speed int, lastSpeed int) int { //returns last speed
 	} else if (lastSpeed > 0){
 		IOSetBit(MOTORDIR)
 	}
-
+	Sleep(5*Millisecond)
 	IOWriteAnalog(MOTOR, 2048 + 4*int(math.Abs(float64(speed))))
 
 	return speed
@@ -78,13 +80,16 @@ func ElevGetFloorSensorSignal() int {
 }
 
 func ElevGetButtonSignal(button int,floor int) int {
-	assert(floor >= 0)
+	/*assert(floor >= 0)
 	assert(floor < N_FLOORS)
 	// assert(!(button == BUTTON_CALL_UP && floor == N_FLOORS-1))
 	// assert(!(button == BUTTON_CALL_DOWN && floor == 0))
-	assert( button == BUTTON_CALL_UP || button == BUTTON_CALL_DOWN || button == BUTTON_COMMAND)
+	assert( button == BUTTON_CALL_UP || button == BUTTON_CALL_DOWN || button == BUTTON_COMMAND)*/
 	
 	if (button == BUTTON_CALL_UP && floor == N_FLOORS-1) || (button == BUTTON_CALL_DOWN && floor == 0) {
+		if button != -1  && floor != -1{
+			Println("HAllooooooooo")
+		}
 		return 0
 	}
 	
@@ -115,21 +120,27 @@ func ElevSetFloorIndicator(floor int) {
 	
 	if (floor & 0x01) != 0 {
 		IOSetBit(FLOOR_IND2)
+	} else {
+		IOClearBit(FLOOR_IND2)
 	}
 }
 
 func ElevSetButtonLamp(button int, floor int, value int) {
-	assert(floor >= 0)
+	/*assert(floor >= 0)
 	assert(floor < N_FLOORS)
 	assert(!(button == BUTTON_CALL_UP && floor == N_FLOORS-1))
 	assert(!(button == BUTTON_CALL_DOWN && floor == 0))
-	assert( button == BUTTON_CALL_UP || button == BUTTON_CALL_DOWN || button == BUTTON_COMMAND)
+	assert( button == BUTTON_CALL_UP || button == BUTTON_CALL_DOWN || button == BUTTON_COMMAND)*/
 	
 	if (value == 1){
 		IOSetBit(lamp_channel_matrix.Get(floor,button));
 	} else {
 		IOClearBit(lamp_channel_matrix.Get(floor,button));
 	}
+}
+
+func ElevGetButtonLamp(button, floor int) bool {
+	return IOReadBit(lamp_channel_matrix.Get(floor, button)) > 0
 }
 
 func ElevSetStopLamp(value int) {
@@ -157,7 +168,7 @@ func assert(t bool) {
 func initMatrices() {
 	lamp_channel_matrix.Set(0,0,LIGHT_UP1)
 	lamp_channel_matrix.Set(0,1,LIGHT_DOWN1)
-	lamp_channel_matrix.Set(0,1,LIGHT_COMMAND1)
+	lamp_channel_matrix.Set(0,2,LIGHT_COMMAND1)
 	
 	lamp_channel_matrix.Set(1,0,LIGHT_UP2)
 	lamp_channel_matrix.Set(1,1,LIGHT_DOWN2)
@@ -174,7 +185,7 @@ func initMatrices() {
 	
 	button_channel_matrix.Set(0,0,FLOOR_UP1)
 	button_channel_matrix.Set(0,1,FLOOR_DOWN1)
-	button_channel_matrix.Set(0,1,FLOOR_COMMAND1)
+	button_channel_matrix.Set(0,2,FLOOR_COMMAND1)
 	
 	button_channel_matrix.Set(1,0,FLOOR_UP2)
 	button_channel_matrix.Set(1,1,FLOOR_DOWN2)
