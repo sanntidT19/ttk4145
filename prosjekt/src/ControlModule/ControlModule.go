@@ -2,12 +2,12 @@ package ControlModule
 
 import (
 	."DriverModule"
-	."fmt"
-	."time"
 	."NetworkModule"
 	."IOModule"
-	list "container/list"
+	list "util"
 	."strings"
+	"strconv"
+	"fmt"
 )
 
 /*
@@ -41,28 +41,47 @@ type Control struct {
 	
 	//storage
 	buttonPushes [][]bool
-	elevators list.List
-	isAlive []bool
-	handledFloors [][][]bool //handledFLoors[floor][button][elevator_id]
+	elevators *list.LinkedList
+	handledFloors [N_FLOORS][3][256]bool //handledFLoors[floor][button][elevator_id]
 	
 	//modules
-	network NetworkModule
-	io IOModule
+	network *NetworkModule
+	io *IOModule
+	
+	//channels
+	toNet chan string
+	fromNet chan string
+	toIO chan string
+	fromIO chan string
 	
 }
 
 func ControlModule() {
-	var control Control
-	control.e := InitElevator()
-	control.network := InitNetworkModule()
-	control.io := InitIOModule()
-	control.elevators := list.New()
+
+	
+	
+	control := new(Control)
+	control.toNet = make(chan string, 10)
+	control.fromNet = make(chan string, 10)
+	control.toIO = make(chan string, 10)
+	control.fromIO = make(chan string, 10)
+	control.e = InitElevator()
+	control.network = InitNetworkModule("161.129.241.161", ":20011", control.toNet, control.fromNet)
+	control.io = InitIOModule(control.toIO, control.fromIO)
+	control.elevators = list.New()
 	control.e.id = -1
 	
-	
+	//elevator procedures
 	go control.e.Update()
 	go control.e.RunDMC()
 	go control.e.Buttons()
+	
+	//io procedures
+	go control.io.ConsoleOut()
+	
+	//network procedures
+	go control.network.Broadcast()
+	go control.network.Listen()
 	
 	control.Backup()
 	control.Master()
@@ -73,17 +92,18 @@ func (c *Control) Master(){
 
 	if c.e.id == -1{ //ingen boss
 		c.e.id = 0	
-		control.isAlive[e.id] = true
 	}
 	
 	masterMessage := "Boss Alive"
-	
-	c.elevators.PushFront(e)	
+	fmt.Println(masterMessage)
+	c.elevators.PushFront(c.e)	
 	
 	
 	for {
-		network.in <- masterMessage
-		
+		//c.toNet <- masterMessage
+		c.toIO <-<-c.e.out
+		//fmt.Println(msg)
+		//c.toIO<-msg
 		
 	}
 	
@@ -91,7 +111,7 @@ func (c *Control) Master(){
 	
 }
 
-func Backup(){
+func (c *Control) Backup(){
 	return 
 }
 
@@ -99,13 +119,13 @@ func (c *Control) ComputeMessages() {
 	
 	
 	for {
-		msg := <-c.network.in
+		msg := <-c.fromNet
 		
-		substrings := SplitN(msg, ":")
+		substrings := SplitN(msg, ":", -1)
 		
-		if substrings[2] == "ButtonPush") { //new button push
-			floor := substrings[3]
-			button := substrings[4]
+		if substrings[2] == "ButtonPush" { //new button push
+			floor,_ := strconv.Atoi(substrings[3])
+			button,_ := strconv.Atoi(substrings[4])
 			c.buttonPushes[floor][button] = true //specify new button push			
 		} else if substrings[2] == "Livsteikn" { //livsteikn
 			
@@ -120,9 +140,9 @@ func (c *Control) ComputeMap() {
 			if (button == BUTTON_CALL_UP && floor == N_FLOORS-1) || (button == BUTTON_CALL_DOWN && floor == 0){
 				continue
 			}
-			if c.buttonPushes[floor][button] && !handledFloors[floor][button]{
-				AddFloor(floor, button)
-			}
+			/*if c.buttonPushes[floor][button] && !handledFloors[floor][button]{
+				c.AddFloor(floor, button)
+			}*/
 		}
 	}
 }

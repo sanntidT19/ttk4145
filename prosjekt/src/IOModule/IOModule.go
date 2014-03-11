@@ -1,7 +1,7 @@
 package IOModule
 
 import (
-"bufio"
+."bufio"
 "fmt"
 "strings"
 "os"
@@ -20,28 +20,28 @@ type IOModule struct {
     
 }
 
-func InitIOModule(i chan string, o chan string) IOModule {
-    var mod IOModule
-    mod.in = i
-    mod.out = o
-    mod.reader = bufio.NewReader(os.Stdin)
+func InitIOModule(i chan string, o chan string) *IOModule {
+    m := new(IOModule)
+    m.in = i
+    m.out = o
+    m.reader = NewReader(os.Stdin)
     
-    return mod
+    return m
 }
 
-func (IOModule) ConsoleIn() {
+func (m *IOModule) ConsoleIn() {
     
-    Print(prompt)
-    input,_ := reader.ReadString('\n')
     
-    return strings.TrimRight(input,"\n")
+    input,_ := m.reader.ReadString('\n')
+    
+    m.out <- strings.TrimRight(input,"\n")
 }
 
-func (IOModule) ConsoleOut() {
+func (m *IOModule) ConsoleOut() {
     var str string
     for {
-        str = <- in
-        Println("[CONSOLE] ", str)
+        str = <- m.in
+        fmt.Println("[CONSOLE] ", str)
     }
 
 }

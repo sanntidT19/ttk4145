@@ -4,16 +4,18 @@ import (
 	."DriverModule"
 	."fmt"
 	."time"
-	list "container/list"
+	list "util"
+	"strconv"
 )
 
 type Elevator struct {
 	id int
-	stopList *list.List
+	stopList *list.LinkedList
 	speed int
 	direction int
 	currentFloor int
 	location int
+	out chan string
 }
 
 func InitElevator() *Elevator {
@@ -34,16 +36,18 @@ func InitElevator() *Elevator {
 	
 	e.speed = ElevSetSpeed(0,-300);	
 	e.currentFloor = ElevGetFloorSensorSignal()
-	
+	e.out = make(chan string, 10)
 	return e
 }
 
 func (e *Elevator) Update() {
 	for {
 		e.location = ElevGetFloorSensorSignal()
-
-		if e.location != -1 {
+		
+		if e.location != -1  && e.currentFloor != e.location{
 			e.currentFloor = e.location
+			msg := strconv.Itoa(e.id)+":currentFloor:"+strconv.Itoa(e.currentFloor)+":direction:"+strconv.Itoa(e.direction)
+			e.out <- msg
 		}
 		Sleep(Millisecond)
 	}
@@ -61,13 +65,9 @@ func (e *Elevator) Buttons() {
 		    button = nbutton
 		    floor = nfloor
 		    ElevSetButtonLamp(button, floor , 1)
-		    //put floor in queue
-		    if button == BUTTON_COMMAND {
-		    	e.UpdateList(button, floor)
-		    	//other buttons are handled by control
-		    }
+		    
+
 		}
-		//Println(button,floor)
 		
 		if ElevGetStopSignal() == 1 {
 			return
@@ -95,7 +95,18 @@ func (e *Elevator) HandleButtonPress(oldButton int, oldFloor int) (int,int) {
 				continue
 			}
 			if ElevGetButtonSignal(button, floor) == 1 && !(ElevGetButtonLamp(button, floor)){
+				if button == BUTTON_COMMAND{
+					//put floor in queue if it is a command
+					e.UpdateList(button, floor)
+				} else {
+					//send a message to control
+			    	msg := strconv.Itoa(e.id)+":button:"+strconv.Itoa(button)+":floor:"+strconv.Itoa(floor)
+			    	e.out <- msg
+			    }
+			
 			    Println("Button", button, "at floor", floor, "was pressed")
+			    //send beskjed
+			    
                 return button, floor			
 			} 
 		}
@@ -104,6 +115,7 @@ func (e *Elevator) HandleButtonPress(oldButton int, oldFloor int) (int,int) {
 }
 
 func (e *Elevator) RunDMC() {
+    l := e.stopList
     for {
         destination := e.GetNextFloor()
         
@@ -112,7 +124,7 @@ func (e *Elevator) RunDMC() {
             ElevSetFloorIndicator(e.currentFloor)
         }
             
-        
+        temp_direction := e.direction
         
         
         if destination == -1 {
@@ -129,7 +141,7 @@ func (e *Elevator) RunDMC() {
         } else {
            
             e.speed = ElevSetSpeed(0, e.speed)
-            e.stopList.Remove(e.stopList.Front())
+            e.stopList.Remove(l.Front())
             
             if e.stopList.Len() == 0  || ElevGetButtonLamp(0, destination) != ElevGetButtonLamp(1, destination){
             	ElevSetButtonLamp(1, destination, 0)
@@ -146,6 +158,7 @@ func (e *Elevator) RunDMC() {
            ElevSetButtonLamp(2, destination, 0)
            Sleep(Second)            
         }
+        if temp_direction != e.direction {l.Sort(e.direction)}
         Sleep(Millisecond)
     }
 }
@@ -162,7 +175,7 @@ func (e *Elevator) UpdateList(button, floor int) int {
 		return 1
 	}
 	
-	if Contains(l,floor) {
+	if l.Contains(floor) {
 	    // do nothing if list already contains floor
 	    Println("Contains")
 		return 0
@@ -203,14 +216,6 @@ func (e *Elevator) UpdateList(button, floor int) int {
 
 }
 
-func Contains(l *list.List, val int) bool {
-	for e := l.Front(); e != nil; e = e.Next() {
-		if e.Value == val {
-			return true
-		}
-	}
-	return false
-}
 
 func (e *Elevator) PrintStatus() {
     for {
